@@ -9,7 +9,7 @@ import java.util.List;
 @Component
 public class CandidateCSVReader {
 
-    private static final String CSV_FILE_PATH = "/recruiter_tools_and_reporting/dummy_test_data.csv";
+    private static final String CSV_FILE_PATH = "dummy_test_data.csv";
 
     public List<Candidate> readCandidates() {
         try {
