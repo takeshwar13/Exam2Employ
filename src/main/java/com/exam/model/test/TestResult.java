@@ -1,9 +1,11 @@
 // Rename CandidateTest.java to TestResult.java and update it
 
-package com.exam.model;
+package com.exam.model.test;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import com.exam.model.profile.CandidateProfile;
 
 @Entity
 public class TestResult { // Renamed from CandidateTest

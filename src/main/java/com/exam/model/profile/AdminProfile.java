@@ -1,4 +1,6 @@
-package com.exam.model;
+package com.exam.model.profile;
+
+import java.util.Date;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -6,22 +8,24 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 @Entity
-public class RecruiterProfile {
+public class AdminProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String companyName;
-    private String contactNumber;
+    
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt = new Date();
 
     @OneToOne
-    @JoinColumn(name = "user_id")  // Foreign key in recruiter_profile table
+    @JoinColumn(name = "user_id")  // FK to User
     private User user;
 
-    public RecruiterProfile() {}
+    public AdminProfile() {}
 
 	public Long getId() {
 		return id;
@@ -29,22 +33,14 @@ public class RecruiterProfile {
 
 	public void setId(Long id) {
 		this.id = id;
+	}	
+
+	public Date getCreatedAt() {
+		return createdAt;
 	}
 
-	public String getCompanyName() {
-		return companyName;
-	}
-
-	public void setCompanyName(String companyName) {
-		this.companyName = companyName;
-	}
-
-	public String getContactNumber() {
-		return contactNumber;
-	}
-
-	public void setContactNumber(String contactNumber) {
-		this.contactNumber = contactNumber;
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
 	}
 
 	public User getUser() {
@@ -54,6 +50,6 @@ public class RecruiterProfile {
 	public void setUser(User user) {
 		this.user = user;
 	}
-    
+
     
 }

@@ -1,7 +1,9 @@
 // Test.java (New File)
-package com.exam.model;
+package com.exam.model.test;
 
 import java.util.Set;
+
+import com.exam.model.profile.RecruiterProfile;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

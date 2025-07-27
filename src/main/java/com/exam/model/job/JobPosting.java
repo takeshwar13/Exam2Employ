@@ -1,6 +1,8 @@
-package com.exam.model;
+package com.exam.model.job;
 
 import java.time.LocalDate;
+
+import com.exam.model.profile.RecruiterProfile;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

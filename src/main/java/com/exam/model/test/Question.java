@@ -1,4 +1,4 @@
-package com.exam.model;
+package com.exam.model.test;
 
 
 import java.util.Set;

@@ -1,4 +1,4 @@
-package com.exam.model;
+package com.exam.model.auth;
 
 public enum Role {
     ADMIN,

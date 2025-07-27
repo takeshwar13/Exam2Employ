@@ -1,4 +1,6 @@
-package com.exam.model;
+package com.exam.model.profile;
+
+import com.exam.model.auth.Role;
 
 import jakarta.persistence.*;
 

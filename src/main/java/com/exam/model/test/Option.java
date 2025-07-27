@@ -1,8 +1,9 @@
-package com.exam.model;
+package com.exam.model.test;
 
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "options")
 public class Option {
 
     @Id
