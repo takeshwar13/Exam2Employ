@@ -1,5 +1,6 @@
 package com.exam.model.profile;
 
+import com.exam.model.auth.AuthProvider;
 import com.exam.model.auth.Role;
 
 import jakarta.persistence.*;
@@ -31,6 +32,9 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private CandidateProfile candidateProfile;
 
+    @Enumerated(EnumType.STRING)
+    private AuthProvider authProvider;
+    
     // Constructors, Getters, and Setters
     public User() {}
 
@@ -97,5 +101,12 @@ public class User {
 	public void setCandidateProfile(CandidateProfile candidateProfile) {
 		this.candidateProfile = candidateProfile;
 	}
+	 public AuthProvider getAuthProvider() {
+	        return authProvider;
+	    }
+
+	    public void setAuthProvider(AuthProvider authProvider) {
+	        this.authProvider = authProvider;
+	    }
     
 }

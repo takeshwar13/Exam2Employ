@@ -3,15 +3,9 @@ package com.exam.model.test;
 
 import java.util.Set;
 
-import com.exam.model.profile.RecruiterProfile;
+import com.exam.model.profile.AdminProfile;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 @Entity
 public class Test {
@@ -26,28 +20,19 @@ public class Test {
 
     // A test can be created by a Recruiter
     @ManyToOne
-    @JoinColumn(name = "created_by_recruiter_id")
-    private RecruiterProfile createdBy;
+    @JoinColumn(name = "created_by_admin_id")
+    private AdminProfile createdBy;
     
     // One Test can have many results
     @OneToMany(mappedBy = "test")
     private Set<TestResult> results;
+    
+ // ADDED: A Test is defined by a set of configurations.
+    @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<TestConfiguration> configurations;
 
     // Constructors, Getters, Setters
-	public Test() {
-		super();
-	}
-
-	public Test(Long id, String title, String description, int durationInMinutes, RecruiterProfile createdBy,
-			Set<TestResult> results) {
-		super();
-		this.id = id;
-		this.title = title;
-		this.description = description;
-		this.durationInMinutes = durationInMinutes;
-		this.createdBy = createdBy;
-		this.results = results;
-	}
+	
 
 	public Long getId() {
 		return id;
@@ -81,11 +66,11 @@ public class Test {
 		this.durationInMinutes = durationInMinutes;
 	}
 
-	public RecruiterProfile getCreatedBy() {
+	public AdminProfile getCreatedBy() {
 		return createdBy;
 	}
 
-	public void setCreatedBy(RecruiterProfile createdBy) {
+	public void setCreatedBy(AdminProfile createdBy) {
 		this.createdBy = createdBy;
 	}
 
@@ -95,6 +80,14 @@ public class Test {
 
 	public void setResults(Set<TestResult> results) {
 		this.results = results;
+	}
+	
+	public Set<TestConfiguration> getConfigurations() {
+		return configurations;
+	}
+
+	public void setConfigurations(Set<TestConfiguration> configurations) {
+		this.configurations = configurations;
 	}
     
 
