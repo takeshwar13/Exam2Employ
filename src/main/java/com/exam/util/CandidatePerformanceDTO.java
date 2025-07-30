@@ -14,7 +14,7 @@ public class CandidatePerformanceDTO {
      this.totalMarks = totalMarks;
  }
 
- // Getters and Setters
+
  public String getTestTitle() {
      return testTitle;
  }

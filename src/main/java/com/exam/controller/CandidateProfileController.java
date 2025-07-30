@@ -1,5 +1,4 @@
 package com.exam.controller;
-
 import com.exam.model.profile.CandidateProfile;
 import com.exam.service.CandidateProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
