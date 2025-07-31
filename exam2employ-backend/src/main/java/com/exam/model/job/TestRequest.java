@@ -33,5 +33,21 @@ public class TestRequest {
         REJECTED
     }
 
+	
+
     // Constructors, Getters, and Setters
+    public void setStatus(RequestStatus pending) {
+		this.status=status;
+		
+	}
+
+	public void setRequestDate(LocalDateTime now) {
+		this.requestDate=requestDate;
+		
+	}
+
+	public void setAdminNotes(String adminNotes2) {
+		this.adminNotes=adminNotes;
+		
+	}
 }
