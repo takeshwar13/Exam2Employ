@@ -1,13 +1,14 @@
 package com.exam.model.profile;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
+@Table(name = "recruiter_profile")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class RecruiterProfile {
 
     @Id
@@ -18,42 +19,6 @@ public class RecruiterProfile {
     private String contactNumber;
 
     @OneToOne
-    @JoinColumn(name = "user_id")  // Foreign key in recruiter_profile table
+    @JoinColumn(name = "user_id")
     private User user;
-
-    public RecruiterProfile() {}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getCompanyName() {
-		return companyName;
-	}
-
-	public void setCompanyName(String companyName) {
-		this.companyName = companyName;
-	}
-
-	public String getContactNumber() {
-		return contactNumber;
-	}
-
-	public void setContactNumber(String contactNumber) {
-		this.contactNumber = contactNumber;
-	}
-
-	public User getUser() {
-		return user;
-	}
-
-	public void setUser(User user) {
-		this.user = user;
-	}
-    
-    
 }
