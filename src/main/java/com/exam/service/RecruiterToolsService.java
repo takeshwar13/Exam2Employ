@@ -17,9 +17,10 @@ public class RecruiterToolsService {
     
     public List<CandidateResultDTO> searchCandidates(
             Long testId,
-            int minScore
+            Integer minScore,
+            String skills
           ) {
-    	 return recruiterToolsRepository.findCandidatesByTestAndScore(testId, minScore);
+    	 return recruiterToolsRepository.findCandidatesWithOptionalFilters(testId, minScore, skills);
     }
     
 }

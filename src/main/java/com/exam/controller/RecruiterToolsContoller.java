@@ -19,10 +19,11 @@ public class RecruiterToolsContoller {
 	@GetMapping("/search")
     public  ResponseEntity<List<CandidateResultDTO>> searchCandidates(
     		@RequestParam Long testId,
-            @RequestParam int minScore
+            @RequestParam(required = false) Integer minScore,
+            @RequestParam(required = false) String skills
 
     ) {
-    	List<CandidateResultDTO> results = recuiterToolsService.searchCandidates(testId, minScore);
+    	List<CandidateResultDTO> results = recuiterToolsService.searchCandidates(testId, minScore,skills);
     	return ResponseEntity.ok(results);
     }
 }

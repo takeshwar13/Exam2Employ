@@ -22,4 +22,17 @@ public interface RecruiterToolsRepository extends JpaRepository<CandidateProfile
         @Param("testId") Long testId,
         @Param("minScore") int minScore
     );
+    
+    
+    @Query("SELECT new com.exam.dto.CandidateResult.CandidateResultDTO(" +
+    	       "tr.candidate.skills, tr.score, tr.test.title) " +
+    	       "FROM TestResult tr " +
+    	       "WHERE tr.test.id = :testId " +
+    	       "AND (:minScore IS NULL OR tr.score >= :minScore) " +
+    	       "AND (:skills IS NULL OR LOWER(tr.candidate.skills) LIKE LOWER(CONCAT('%', :skills, '%')))")
+    	List<CandidateResultDTO> findCandidatesWithOptionalFilters(
+    	    @Param("testId") Long testId,
+    	    @Param("minScore") Integer minScore,
+    	    @Param("skills") String skills
+    	);
 }
