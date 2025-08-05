@@ -9,6 +9,12 @@ import com.examserver2.service.admin.AdminService;
 
 import java.util.List;
 
+
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
 @RestController
 @RequestMapping("/api/candidates")
 @CrossOrigin("*")
@@ -26,4 +32,32 @@ public class AdminController {
     	List<CandidateResultDTO> results = adminService.searchCandidates(testId, percentage);
     	return ResponseEntity.ok(results);
     }
+	
+	@GetMapping("/export")
+	public void exportCandidatesToCsv(
+	        @RequestParam Long testId,
+	        @RequestParam(required = false) Double percentage,
+	        HttpServletResponse response) throws IOException{
+
+	    List<CandidateResultDTO> candidates = adminService.searchCandidates(testId, percentage);
+
+	    // Set response headers
+	    response.setContentType("text/csv");
+	    response.setHeader("Content-Disposition", "attachment; filename=candidates.csv");
+
+	    // Write CSV content
+	    PrintWriter writer = response.getWriter();
+	    if (candidates.isEmpty()) {
+	        writer.println("No matching candidates found.");
+	    } else {
+	    	writer.println("Candidate Name, Email, Percentage, Test Title");
+	    }
+
+	    for (CandidateResultDTO candidate : candidates) {
+	        writer.println(candidate.getName() + "," + candidate.getEmail() + "," + candidate.getPercentage() + "," + candidate.getTitle());
+	    }
+
+	    writer.flush();
+	    writer.close();
+	}
 }
