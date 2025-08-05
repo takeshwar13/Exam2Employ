@@ -13,7 +13,7 @@ import java.util.List;
 public interface AdminRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT new com.examserver2.dto.CandidateResultDTO(" +
-    	       "tr.percentage, tr.test.title) " +
+    	       "tr.percentage, tr.test.title, tr.user.name, tr.user.email) " +
     	       "FROM TestResult tr " +
     	       "WHERE tr.test.id = :testId " +
     	       "AND (:percentage IS NULL OR tr.percentage >= :percentage) ")
