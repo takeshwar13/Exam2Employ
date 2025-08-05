@@ -4,7 +4,6 @@ import UserNavbar from './UserNavbar';
 import DashboardContent from './DashboardContent';
 import ResultsContent from './ResultsContent';
 import TestPage from './TestPage';
-// import TestPage from './TestPage'; // Import the TestPage component
 
 const UserLayout = ({ onLogout }) => {
   return (

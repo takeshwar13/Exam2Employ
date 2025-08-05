@@ -5,11 +5,11 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Login from "./components/Login";
-import SignUp from "./components/SignUp";
-import AdminLayout from "./components/AdminLayout";
-import UserLayout from "./components/UserLayout";
+import Navbar from "./components/common/Navbar";
+import Login from "./components/auth/Login";
+import SignUp from "./components/auth/SignUp";
+import AdminLayout from "./components/admin/AdminLayout";
+import UserLayout from "./components/user/UserLayout";
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
