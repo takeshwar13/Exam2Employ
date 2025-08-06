@@ -1,289 +1,185 @@
-import React, { useState } from 'react';
-import { Plus, Save, X } from 'lucide-react';
+import React, { useState } from "react";
+import axios from "axios";
+import { Plus, Trash2 } from "lucide-react";
 
 const CreateTest = () => {
   const [testData, setTestData] = useState({
-    title: '',
-    description: '',
-    timeLimit: '',
-    level: 'beginner'
+    title: "",
+    description: "",
+    time: ""
   });
 
-  const [questions, setQuestions] = useState([]);
-  const [currentQuestion, setCurrentQuestion] = useState({
-    question: '',
-    options: ['', '', '', ''],
-    correctAnswer: 0,
-    points: 1
-  });
+  const [questions, setQuestions] = useState([
+    {
+      text: "",
+      options: ["", "", "", ""],
+      correctOption: 0
+    }
+  ]);
 
-  const [showQuestionForm, setShowQuestionForm] = useState(false);
-
-  const handleTestDataChange = (e) => {
-    setTestData({
-      ...testData,
-      [e.target.name]: e.target.value
-    });
+  const handleTestChange = (e) => {
+    setTestData({ ...testData, [e.target.name]: e.target.value });
   };
 
-  const handleQuestionChange = (e) => {
-    setCurrentQuestion({
-      ...currentQuestion,
-      [e.target.name]: e.target.value
-    });
+  const handleQuestionChange = (index, field, value) => {
+    const updatedQuestions = [...questions];
+    if (field === "text") {
+      updatedQuestions[index].text = value;
+    } else {
+      updatedQuestions[index].options[field] = value;
+    }
+    setQuestions(updatedQuestions);
   };
 
-  const handleOptionChange = (index, value) => {
-    const newOptions = [...currentQuestion.options];
-    newOptions[index] = value;
-    setCurrentQuestion({
-      ...currentQuestion,
-      options: newOptions
-    });
+  const handleCorrectOptionChange = (index, value) => {
+    const updatedQuestions = [...questions];
+    updatedQuestions[index].correctOption = parseInt(value);
+    setQuestions(updatedQuestions);
   };
 
   const addQuestion = () => {
-    if (currentQuestion.question && currentQuestion.options.every(opt => opt.trim())) {
-      setQuestions([...questions, { ...currentQuestion, id: Date.now() }]);
-      setCurrentQuestion({
-        question: '',
-        options: ['', '', '', ''],
-        correctAnswer: 0,
-        points: 1
-      });
-      setShowQuestionForm(false);
-    }
+    setQuestions([
+      ...questions,
+      { text: "", options: ["", "", "", ""], correctOption: 0 }
+    ]);
   };
 
-  const removeQuestion = (id) => {
-    setQuestions(questions.filter(q => q.id !== id));
+  const removeQuestion = (index) => {
+    const updatedQuestions = [...questions];
+    updatedQuestions.splice(index, 1);
+    setQuestions(updatedQuestions);
   };
 
-  const saveTest = () => {
-    if (testData.title && testData.description && questions.length > 0) {
-      alert('Test created successfully!');
-      // Here you would typically save to a database
-      console.log('Test Data:', testData);
-      console.log('Questions:', questions);
-    } else {
-      alert('Please fill in all required fields and add at least one question.');
+  const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const testResponse = await axios.post(
+        "http://localhost:8080/api/test",
+        testData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const testId = testResponse.data.id;
+
+      for (const question of questions) {
+        await axios.post(
+          "http://localhost:8080/api/test/question",
+          {
+            testId,
+            text: question.text,
+            options: question.options,
+            correctOption: question.correctOption
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+      }
+
+      alert("Test created successfully!");
+      setTestData({ title: "", description: "", time: "" });
+      setQuestions([{ text: "", options: ["", "", "", ""], correctOption: 0 }]);
+    } catch (error) {
+      console.error("Error creating test:", error);
+      alert("Failed to create test");
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Create New Test</h1>
-        <p className="text-gray-600">Design and configure your quiz</p>
+    <div className="p-6 max-w-5xl mx-auto">
+      <h2 className="text-2xl font-semibold mb-4">Create Test</h2>
+
+      <div className="space-y-4 mb-6">
+        <input
+          type="text"
+          name="title"
+          placeholder="Test Title"
+          value={testData.title}
+          onChange={handleTestChange}
+          className="w-full border p-2 rounded"
+        />
+        <textarea
+          name="description"
+          placeholder="Test Description"
+          value={testData.description}
+          onChange={handleTestChange}
+          className="w-full border p-2 rounded"
+        />
+        <input
+          type="number"
+          name="time"
+          placeholder="Time Limit (minutes)"
+          value={testData.time}
+          onChange={handleTestChange}
+          className="w-full border p-2 rounded"
+        />
       </div>
 
-      {/* Test Configuration */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Test Configuration</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Test Title *
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={testData.title}
-              onChange={handleTestDataChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter test title"
-            />
+      <h3 className="text-xl font-medium mb-2">Questions</h3>
+      {questions.map((q, index) => (
+        <div key={index} className="border p-4 mb-4 rounded bg-gray-50">
+          <div className="mb-2 flex justify-between items-center">
+            <h4 className="font-medium">Question {index + 1}</h4>
+            {questions.length > 1 && (
+              <button
+                onClick={() => removeQuestion(index)}
+                className="text-red-500 hover:text-red-700"
+              >
+                <Trash2 size={20} />
+              </button>
+            )}
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Time Limit (minutes)
-            </label>
-            <input
-              type="number"
-              name="timeLimit"
-              value={testData.timeLimit}
-              onChange={handleTestDataChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g., 30"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Difficulty Level
-            </label>
-            <select
-              name="level"
-              value={testData.level}
-              onChange={handleTestDataChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="beginner">Beginner</option>
-              <option value="junior">Junior</option>
-              <option value="senior">Senior</option>
-            </select>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description *
-            </label>
-            <textarea
-              name="description"
-              value={testData.description}
-              onChange={handleTestDataChange}
-              rows="3"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Describe the test content and objectives"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Questions Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Questions ({questions.length})
-          </h2>
-          <button
-            onClick={() => setShowQuestionForm(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Question
-          </button>
-        </div>
-
-        {/* Question Form */}
-        {showQuestionForm && (
-          <div className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Question *
-              </label>
-              <textarea
-                name="question"
-                value={currentQuestion.question}
-                onChange={handleQuestionChange}
-                rows="2"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter your question"
+          <input
+            type="text"
+            placeholder="Question Text"
+            value={q.text}
+            onChange={(e) =>
+              handleQuestionChange(index, "text", e.target.value)
+            }
+            className="w-full mb-2 p-2 border rounded"
+          />
+          {q.options.map((option, optIndex) => (
+            <div key={optIndex} className="mb-1 flex items-center gap-2">
+              <input
+                type="text"
+                placeholder={`Option ${optIndex + 1}`}
+                value={option}
+                onChange={(e) =>
+                  handleQuestionChange(index, optIndex, e.target.value)
+                }
+                className="flex-grow p-2 border rounded"
               />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {currentQuestion.options.map((option, index) => (
-                <div key={index}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Option {index + 1} *
-                    {index === currentQuestion.correctAnswer && (
-                      <span className="text-green-600 ml-1">(Correct)</span>
-                    )}
-                  </label>
-                  <input
-                    type="text"
-                    value={option}
-                    onChange={(e) => handleOptionChange(index, e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={`Enter option ${index + 1}`}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Correct Answer
-                </label>
-                <select
-                  name="correctAnswer"
-                  value={currentQuestion.correctAnswer}
-                  onChange={(e) => setCurrentQuestion({
-                    ...currentQuestion,
-                    correctAnswer: parseInt(e.target.value)
-                  })}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value={0}>Option 1</option>
-                  <option value={1}>Option 2</option>
-                  <option value={2}>Option 3</option>
-                  <option value={3}>Option 4</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Points
-                </label>
-                <input
-                  type="number"
-                  name="points"
-                  value={currentQuestion.points}
-                  onChange={handleQuestionChange}
-                  min="1"
-                  className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={addQuestion}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200"
-              >
-                Add Question
-              </button>
-              <button
-                onClick={() => setShowQuestionForm(false)}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Questions List */}
-        <div className="space-y-3">
-          {questions.map((question, index) => (
-            <div key={question.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-800 mb-2">
-                    {index + 1}. {question.question}
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                    {question.options.map((option, optIndex) => (
-                      <div key={optIndex} className={`${optIndex === question.correctAnswer ? 'text-green-600 font-medium' : ''}`}>
-                        {String.fromCharCode(65 + optIndex)}. {option}
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-2">Points: {question.points}</p>
-                </div>
-                <button
-                  onClick={() => removeQuestion(question.id)}
-                  className="text-red-500 hover:text-red-700 ml-4"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
+              <input
+                type="radio"
+                name={`correctOption-${index}`}
+                checked={q.correctOption === optIndex}
+                onChange={() => handleCorrectOptionChange(index, optIndex)}
+              />
+              <label>Correct</label>
             </div>
           ))}
         </div>
-      </div>
+      ))}
 
-      {/* Save Button */}
-      <div className="flex justify-end">
+      <button
+        onClick={addQuestion}
+        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        <Plus size={18} /> Add Question
+      </button>
+
+      <div className="mt-6">
         <button
-          onClick={saveTest}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors duration-200 flex items-center gap-2"
+          onClick={handleSubmit}
+          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
         >
-          <Save className="h-4 w-4" />
           Save Test
         </button>
       </div>

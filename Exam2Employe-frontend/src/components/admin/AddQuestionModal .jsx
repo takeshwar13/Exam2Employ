@@ -1,130 +1,150 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+// src/components/admin/AddQuestion.jsx
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const AddQuestionModal = ({ isOpen, onClose, onSave }) => {
+const AddQuestion = () => {
+  const [tests, setTests] = useState([]);
+  const [selectedTestId, setSelectedTestId] = useState('');
   const [question, setQuestion] = useState({
-    title: '',
-    text: '',
-    options: ['', '', '', ''],
-    correctOption: 0
+    questionText: '',
+    optionA: '',
+    optionB: '',
+    optionC: '',
+    optionD: '',
+    correctOption: '',
   });
 
-  const handleOptionChange = (index, value) => {
-    const newOptions = [...question.options];
-    newOptions[index] = value;
-    setQuestion({ ...question, options: newOptions });
+  useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/test', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setTests(response.data);
+      } catch (error) {
+        console.error('Error fetching tests:', error);
+      }
+    };
+    fetchTests();
+  }, []);
+
+  const handleChange = (e) => {
+    setQuestion({ ...question, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!question.title || !question.text || question.options.some(opt => !opt.trim())) {
-      alert('Please fill in all fields');
+
+    if (!selectedTestId) {
+      alert('Please select a test');
       return;
     }
-    onSave(question);
-    // Reset form after save
-    setQuestion({
-      title: '',
-      text: '',
-      options: ['', '', '', ''],
-      correctOption: 0
-    });
+
+    const payload = {
+      ...question,
+      testId: selectedTestId,
+    };
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:8080/api/test/question', payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      alert('Question added successfully');
+      setQuestion({
+        questionText: '',
+        optionA: '',
+        optionB: '',
+        optionC: '',
+        optionD: '',
+        correctOption: '',
+      });
+    } catch (error) {
+      console.error('Error adding question:', error.response?.data || error.message);
+    }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center border-b border-gray-200 p-4">
-          <h2 className="text-xl font-semibold text-gray-800">Add New Question</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Question Title *
-            </label>
-            <input
-              type="text"
-              value={question.title}
-              onChange={(e) => setQuestion({...question, title: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter question title"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Question Text *
-            </label>
-            <textarea
-              value={question.text}
-              onChange={(e) => setQuestion({...question, text: e.target.value})}
-              rows="3"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter question text"
-              required
-            />
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-800">Options</h3>
-            {['A', 'B', 'C', 'D'].map((option, index) => (
-              <div key={index} className="flex items-center space-x-4">
-                <span className="w-8 text-sm font-medium text-gray-700">Option {option}</span>
-                <input
-                  type="text"
-                  value={question.options[index]}
-                  onChange={(e) => handleOptionChange(index, e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={`Enter option ${option}`}
-                  required
-                />
-              </div>
-            ))}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Correct Option *
-            </label>
-            <select
-              value={question.correctOption}
-              onChange={(e) => setQuestion({...question, correctOption: parseInt(e.target.value)})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value={0}>Option A</option>
-              <option value={1}>Option B</option>
-              <option value={2}>Option C</option>
-              <option value={3}>Option D</option>
-            </select>
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800"
-            >
-              Save Question
-            </button>
-          </div>
-        </form>
-      </div>
+    <div className="p-4 max-w-xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4">Add Question</h2>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <select
+          className="w-full border p-2 rounded"
+          value={selectedTestId}
+          onChange={(e) => setSelectedTestId(e.target.value)}
+        >
+          <option value="">Select Test</option>
+          {tests.map((test) => (
+            <option key={test.id} value={test.id}>
+              {test.title}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          name="questionText"
+          value={question.questionText}
+          onChange={handleChange}
+          placeholder="Enter question"
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          type="text"
+          name="optionA"
+          value={question.optionA}
+          onChange={handleChange}
+          placeholder="Option A"
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          type="text"
+          name="optionB"
+          value={question.optionB}
+          onChange={handleChange}
+          placeholder="Option B"
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          type="text"
+          name="optionC"
+          value={question.optionC}
+          onChange={handleChange}
+          placeholder="Option C"
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          type="text"
+          name="optionD"
+          value={question.optionD}
+          onChange={handleChange}
+          placeholder="Option D"
+          className="w-full border p-2 rounded"
+          required
+        />
+        <input
+          type="text"
+          name="correctOption"
+          value={question.correctOption}
+          onChange={handleChange}
+          placeholder="Correct Option (A/B/C/D)"
+          className="w-full border p-2 rounded"
+          required
+        />
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+          Add Question
+        </button>
+      </form>
     </div>
   );
 };
 
-export default AddQuestionModal;
+export default AddQuestion;
