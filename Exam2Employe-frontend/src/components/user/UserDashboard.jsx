@@ -1,32 +1,49 @@
-import React, { useState } from 'react';
-import { Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
-import { LayoutDashboard, BarChart2, LogOut, Clock } from 'lucide-react';
+
+
+/**
+ * UserDashboard component
+ *
+ * - Fetches and displays all available tests for the authenticated user (requires JWT token in localStorage).
+ * - Shows a navigation bar for Dashboard and Results.
+ * - Handles loading and error states for test fetching.
+ * - Displays test results (currently using sample data).
+ * - On "Start Test" button, triggers navigation or action for test taking (currently placeholder).
+ *
+ * API Integration:
+ *   - Uses getAllTests(token) from api/testApi.js to fetch tests from backend.
+ *   - Backend endpoint: GET /api/test (requires Authorization: Bearer <token> header)
+ *   - Backend is protected by Spring Security and expects a valid JWT.
+ *
+ * Usage:
+ *   <UserDashboard onLogout={logoutHandler} />
+ */
 
 const UserDashboard = ({ onLogout }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [tests, setTests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Sample test data
-  const tests = [
-    {
-      id: 1,
-      title: "Beginner Level Developer Test",
-      time: "5 minutes 9 seconds",
-      description: "Basic level questions for entry-level developers."
-    },
-    {
-      id: 2,
-      title: "Junior Level Developer Test",
-      time: "0 minutes 5 seconds",
-      description: "Intermediate level questions for junior developers."
-    },
-    {
-      id: 3,
-      title: "Senior Level Developer Test",
-      time: "0 minutes 5 seconds",
-      description: "Advanced level questions for senior developers."
-    }
-  ];
+  useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('User not authenticated.');
+          setLoading(false);
+          return;
+        }
+        const response = await getAllTests(token);
+        setTests(response.data);
+      } catch (err) {
+        setError(err.response?.data || 'Failed to fetch tests');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTests();
+  }, []);
 
   // Sample results data
   const results = [
@@ -108,30 +125,40 @@ const UserDashboard = ({ onLogout }) => {
             element={
               <div>
                 <h1 className="text-2xl font-bold text-gray-800 mb-8">Available Tests</h1>
-                <div className="space-y-8">
-                  {tests.map((test) => (
-                    <div key={test.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h2 className="text-xl font-semibold text-gray-800 mb-2">{test.title}</h2>
-                          <div className="flex items-center text-gray-600 mb-2">
-                            <Clock className="h-4 w-4 mr-2" />
-                            <span className="text-sm">{test.time}</span>
+                {loading ? (
+                  <div className="text-center mt-8">Loading tests...</div>
+                ) : error ? (
+                  <div className="text-center text-red-600 mt-8">{error}</div>
+                ) : (
+                  <div className="space-y-8">
+                    {tests.length === 0 ? (
+                      <div className="text-gray-600">No tests available.</div>
+                    ) : (
+                      tests.map((test) => (
+                        <div key={test.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h2 className="text-xl font-semibold text-gray-800 mb-2">{test.title || test.name}</h2>
+                              <div className="flex items-center text-gray-600 mb-2">
+                                <Clock className="h-4 w-4 mr-2" />
+                                <span className="text-sm">{test.time || 'N/A'}</span>
+                              </div>
+                              {test.description && (
+                                <p className="text-gray-600 text-sm mb-4">{test.description}</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleStartTest(test.id)}
+                              className="px-6 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors"
+                            >
+                              Start Test
+                            </button>
                           </div>
-                          {test.description && (
-                            <p className="text-gray-600 text-sm mb-4">{test.description}</p>
-                          )}
                         </div>
-                        <button
-                          onClick={() => handleStartTest(test.id)}
-                          className="px-6 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors"
-                        >
-                          Start Test
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             } 
           />

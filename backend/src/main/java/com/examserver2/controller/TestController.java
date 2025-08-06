@@ -45,7 +45,7 @@ public class TestController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN','USER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping
     public ResponseEntity<?> getAllTest() {
         try {
@@ -55,7 +55,7 @@ public class TestController {
         }
     }
     
-    @PreAuthorize("hasRole('ADMIN','USER')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/{id}")
     public ResponseEntity<?> getAllQuestions(@PathVariable Long id) {
         try {

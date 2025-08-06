@@ -35,6 +35,10 @@ const Login = ({ onRegisterClick, onLogin }) => {
       if (!loginResponse.user) {
         throw new Error('Invalid response from server');
       }
+      // Store JWT token in localStorage for authenticated requests
+      if (loginResponse.token) {
+        localStorage.setItem('token', loginResponse.token);
+      }
       onLogin(loginResponse.user);
     } catch (error) {
       const msg = error.response?.data?.message || error.message || 'Login failed. Please try again.';

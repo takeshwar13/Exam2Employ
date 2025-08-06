@@ -14,7 +14,10 @@ public class TestMapper {
         dto.setId(test.getId());
         dto.setTitle(test.getTitle());
         dto.setDescription(test.getDescription());
-        dto.setTime(test.getTime());
+        // Calculate total time as time per question * number of questions
+        Long timePerQuestion = test.getTime() != null ? test.getTime() : 0L;
+        int numQuestions = (test.getQuestions() != null) ? test.getQuestions().size() : 0;
+        dto.setTime(timePerQuestion * numQuestions);
         return dto;
     }
 

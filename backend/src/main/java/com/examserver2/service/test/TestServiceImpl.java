@@ -1,7 +1,5 @@
 package com.examserver2.service.test;
 
-
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -66,7 +64,6 @@ public class TestServiceImpl implements TestService {
     
     public List<TestDTO> getAllTests() {
         return testRepository.findAll().stream()
-            .peek(test -> test.setTime(test.getQuestions().size() * test.getTime()))
             .map(TestMapper::toDTO)
             .collect(Collectors.toList());
     }
@@ -78,7 +75,7 @@ public class TestServiceImpl implements TestService {
         
         if (optionalTest.isPresent()) {
 //          TestDTO testDTO = optionalTest.get().getDto();
-        	Test test = optionalTest.get();
+            Test test = optionalTest.get();
             TestDTO testDTO = TestMapper.toDTO(test);
             
 //           // Multiply time per question by number of questions
@@ -88,7 +85,7 @@ public class TestServiceImpl implements TestService {
             // Populate questions list with mapped DTOs
             testDetailsDTO.setTestDTO(testDTO);
             testDetailsDTO.setQuestions(
-            		test.getQuestions().stream()
+                    test.getQuestions().stream()
                             .map(QuestionMapper::toResponseDTO) //changed from question::getDto 
                             .toList()
             );
@@ -106,7 +103,7 @@ public class TestServiceImpl implements TestService {
             .orElseThrow(() -> new EntityNotFoundException("Test not found"));
 
         User user = userRepository.findById(request.getUserId())
-        	    .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
         
         int correctAnswers = 0;
         
@@ -136,11 +133,11 @@ public class TestServiceImpl implements TestService {
     }
     
     public List<TestResultDTO> getAllTestResults(){
-    	return testResultRepository.findAll().stream().map(TestResultMapper::toDto).collect(Collectors.toList());
+        return testResultRepository.findAll().stream().map(TestResultMapper::toDto).collect(Collectors.toList());
     }
     
     public List<TestResultDTO> getAllTestResultsOfUser(Long userId){
-    	return testResultRepository.findAllByUserId(userId).stream().map(TestResultMapper::toDto).collect(Collectors.toList());
+        return testResultRepository.findAllByUserId(userId).stream().map(TestResultMapper::toDto).collect(Collectors.toList());
     }
     
 }
