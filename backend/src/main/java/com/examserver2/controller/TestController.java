@@ -19,7 +19,6 @@ import com.examserver2.service.test.TestService;
 
 @RestController
 @RequestMapping("api/test")
-@CrossOrigin("*")
 public class TestController {
 
     @Autowired
@@ -34,8 +33,8 @@ public class TestController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    
-    @PreAuthorize("hasRole('ADMIN')") 
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/question")
     public ResponseEntity<?> addQuestionInTest(@RequestBody QuestionRequestDTO dto) {
         try {
@@ -46,7 +45,7 @@ public class TestController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasRole('ADMIN','USER')")
     @GetMapping
     public ResponseEntity<?> getAllTest() {
         try {
@@ -56,7 +55,7 @@ public class TestController {
         }
     }
     
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasRole('ADMIN','USER')")
     @GetMapping("/{id}")
     public ResponseEntity<?> getAllQuestions(@PathVariable Long id) {
         try {
