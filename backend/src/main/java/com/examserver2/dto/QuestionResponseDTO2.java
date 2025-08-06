@@ -8,4 +8,5 @@ public class QuestionResponseDTO2 {
 	private Long questionId;
 	
 	private String selectedOption;
+	
 }
