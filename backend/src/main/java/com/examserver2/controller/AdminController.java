@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import com.examserver2.dto.CandidateResultDTO;
 import com.examserver2.service.admin.AdminService;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
 
@@ -19,7 +20,6 @@ import java.io.PrintWriter;
 
 @RestController
 @RequestMapping("/api/candidates")
-@CrossOrigin("*")
 public class AdminController {
 
 	@Autowired

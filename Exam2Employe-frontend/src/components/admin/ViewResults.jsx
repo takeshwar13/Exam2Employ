@@ -1,74 +1,106 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Search, Download, Eye, TrendingUp, Users, Clock, Award } from 'lucide-react';
 
 const ViewResults = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTest, setSelectedTest] = useState('all');
 
-  const testResults = [
-    {
-      id: 1,
-      testName: 'Beginner Level Developer Test',
-      participant: 'John Doe',
-      email: 'john.doe@email.com',
-      score: 8,
-      totalQuestions: 10,
-      percentage: 80,
-      timeSpent: '4:30',
-      completedAt: '2024-01-15 10:30',
-      status: 'Passed'
-    },
-    {
-      id: 2,
-      testName: 'Junior Level Developer Test',
-      participant: 'Jane Smith',
-      email: 'jane.smith@email.com',
-      score: 12,
-      totalQuestions: 15,
-      percentage: 80,
-      timeSpent: '12:45',
-      completedAt: '2024-01-15 11:15',
-      status: 'Passed'
-    },
-    {
-      id: 3,
-      testName: 'Senior Level Developer Test',
-      participant: 'Mike Johnson',
-      email: 'mike.johnson@email.com',
-      score: 14,
-      totalQuestions: 20,
-      percentage: 70,
-      timeSpent: '18:20',
-      completedAt: '2024-01-15 14:22',
-      status: 'Passed'
-    },
-    {
-      id: 4,
-      testName: 'Beginner Level Developer Test',
-      participant: 'Sarah Wilson',
-      email: 'sarah.wilson@email.com',
-      score: 5,
-      totalQuestions: 10,
-      percentage: 50,
-      timeSpent: '4:45',
-      completedAt: '2024-01-15 16:10',
-      status: 'Failed'
-    }
-  ];
+  const [testOptions, setTests] = useState([]);
+  const [testResults, setResults] = useState([]);
+  const [selectedTestId, setSelectedTestId] = useState('');
+  const [percentage, setPercentage] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const testOptions = [
-    { value: 'all', label: 'All Tests' },
-    { value: 'Beginner Level Developer Test', label: 'Beginner Level' },
-    { value: 'Junior Level Developer Test', label: 'Junior Level' },
-    { value: 'Senior Level Developer Test', label: 'Senior Level' }
-  ];
+  const token = localStorage.getItem('token');
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  useEffect(() => {
+  axios
+    .get('http://localhost:8080/api/test', { headers })
+    .then((response) => {
+      const tests = response.data;
+      setTests(tests);
+      if (tests.length > 0) {
+        setSelectedTestId(tests[0].id); // Set default selected test
+        // Now trigger search immediately
+        handleSearchWithTestId(tests[0].id);
+      }
+    })
+    .catch((error) => {
+      console.error('Error fetching tests:', error);
+    });
+}, []);
+
+
+  // Search candidates based on selected test and percentage
+  const handleSearchWithTestId = (testId) => {
+    if (!testId) return;
+    setLoading(true);
+
+    let url = `http://localhost:8080/api/candidates/search?testId=${testId}`;
+    if (percentage) {
+      url += `&percentage=${percentage}`;
+    }
+
+    axios
+      .get(url, { headers })
+      .then((res) => {
+        const enrichedResults = res.data.map((item, index) => ({
+          id: index + 1, // Add unique ID
+          name: item.name,
+          title: item.title,
+          email: item.email,
+          percentage: item.percentage,
+          totalQuestions: 100, // Placeholder
+          status: item.percentage >= 40 ? 'Passed' : 'Failed',
+        }));
+
+        setResults(enrichedResults);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Search error:', err);
+        setLoading(false);
+      });
+  };
+
+  const handleSearch = () => {
+    handleSearchWithTestId(selectedTestId);
+  };
+
+  // Export data as CSV
+  const handleExport = () => {
+    let url = `http://localhost:8080/api/candidates/export?testId=${selectedTestId}`;
+    if (percentage) {
+      url += `&percentage=${percentage}`;
+    }
+
+    axios
+      .get(url, { headers, responseType: 'blob' })
+      .then((res) => {
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'results.csv');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      })
+      .catch((err) => {
+        console.error('Export failed:', err);
+      });
+  };
 
   const filteredResults = testResults.filter(result => {
-    const matchesSearch = result.participant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         result.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTest = selectedTest === 'all' || result.testName === selectedTest;
-    return matchesSearch && matchesTest;
-  });
+  const matchesSearch =
+    result.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    result.email.toLowerCase().includes(searchTerm.toLowerCase());
+  return matchesSearch;
+});
+
 
   const totalParticipants = testResults.length;
   const averageScore = testResults.reduce((sum, result) => sum + result.percentage, 0) / totalParticipants;
@@ -146,22 +178,35 @@ const ViewResults = () => {
           
           <div className="md:w-64">
             <select
-              value={selectedTest}
-              onChange={(e) => setSelectedTest(e.target.value)}
+              value={selectedTestId}
+              onChange={(e) => setSelectedTestId(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              {testOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              <option value="">Select Test</option>
+              {testOptions.map((test) => (
+                <option key={test.id} value={test.id}>
+                  {test.title}
                 </option>
               ))}
             </select>
-          </div>
 
-          <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 flex items-center gap-2">
+          </div>
+          <button
+          onClick={handleSearch}
+          className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 flex items-center gap-2"
+        >
+          <Search className="h-4 w-4" />
+          Search
+        </button>
+
+          <button
+            onClick={handleExport}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 flex items-center gap-2"
+          >
             <Download className="h-4 w-4" />
             Export
           </button>
+
         </div>
       </div>
 
@@ -175,22 +220,16 @@ const ViewResults = () => {
                   Participant
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Test
+                  Email
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Test Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Score
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Time Spent
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Completed At
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
                 </th>
               </tr>
             </thead>
@@ -199,27 +238,20 @@ const ViewResults = () => {
                 <tr key={result.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{result.participant}</div>
-                      <div className="text-sm text-gray-500">{result.email}</div>
+                      <div className="text-sm font-medium text-gray-900">{result.name}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{result.testName}</div>
+                    <div className="text-sm text-gray-900">{result.email}</div>
+                  </td>
+                   <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{result.title}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {result.score}/{result.totalQuestions}
+                      {result.percentage}
                     </div>
                     <div className="text-sm text-gray-500">{result.percentage}%</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center text-sm text-gray-900">
-                      <Clock className="h-4 w-4 mr-1" />
-                      {result.timeSpent}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {result.completedAt}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -229,12 +261,6 @@ const ViewResults = () => {
                     }`}>
                       {result.status}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-blue-600 hover:text-blue-900 flex items-center gap-1">
-                      <Eye className="h-4 w-4" />
-                      View Details
-                    </button>
                   </td>
                 </tr>
               ))}
