@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, Lock } from 'lucide-react';
+import axios from 'axios';
 
 const Login = ({ onRegisterClick, onLogin }) => {
   const [email, setEmail] = useState('');
@@ -8,42 +9,36 @@ const Login = ({ onRegisterClick, onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!email || !password) {
       alert('Please fill in all fields');
       return;
     }
-    
+
     if (!email.includes('@')) {
       alert('Please enter a valid email address');
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check credentials
-      if (email === 'admin@quiz.com' && password === 'admin123') {
-        onLogin({ 
-          email, 
-          name: 'Admin User', 
-          role: 'admin' 
-        });
-      } else if (email === 'user@quiz.com' && password === 'user123') {
-        onLogin({ 
-          email, 
-          name: 'Regular User', 
-          role: 'user' 
-        });
-      } else {
-        throw new Error('Invalid credentials');
+      // Call backend login API using axios
+      const response = await axios.post(
+        'http://localhost:8080/api/auth/login',
+        { email, password },
+        { withCredentials: true }
+      );
+      const loginResponse = response.data;
+      // loginResponse: { token, user }
+      if (!loginResponse.user) {
+        throw new Error('Invalid response from server');
       }
+      onLogin(loginResponse.user);
     } catch (error) {
-      alert('Invalid credentials. Try:\nAdmin: admin@quiz.com / admin123\nUser: user@quiz.com / user123');
+      const msg = error.response?.data?.message || error.message || 'Login failed. Please try again.';
+      alert(msg);
     } finally {
       setIsLoading(false);
     }

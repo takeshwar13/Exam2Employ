@@ -8,7 +8,7 @@ import {
 import Navbar from "./components/common/Navbar";
 import Login from "./components/auth/Login";
 import SignUp from "./components/auth/SignUp";
-import AdminLayout from "./components/admin/AdminLayout";
+import AdminLayout from "./components/admin/AdminLayout .jsx";
 import UserLayout from "./components/user/UserLayout";
 
 const App = () => {
@@ -38,7 +38,7 @@ const App = () => {
               <Route
                 path="/*"
                 element={
-                  user?.role === "admin" ? (
+                  user?.role === "ADMIN" ? (
                     <AdminLayout onLogout={handleLogout} />
                   ) : (
                     <UserLayout onLogout={handleLogout} />

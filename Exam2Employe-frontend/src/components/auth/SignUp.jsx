@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { User, Lock, Mail } from 'lucide-react';
 
 const SignUp = ({ onLoginClick }) => {
@@ -16,33 +17,48 @@ const SignUp = ({ onLoginClick }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Basic validation
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      alert('Please fill in all fields');
+    // Regex patterns
+    const nameRegex = /^[A-Za-z ]{2,50}$/;
+    const emailRegex = /^[\w-.]+@[\w-]+\.[a-zA-Z]{2,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/;
+
+    // Name validation
+    if (!formData.name || !nameRegex.test(formData.name)) {
+      alert('Please enter a valid name (letters and spaces only, 2-50 characters).');
       return;
     }
-    
-    if (!formData.email.includes('@')) {
+    // Email validation
+    if (!formData.email || !emailRegex.test(formData.email)) {
       alert('Please enter a valid email address');
       return;
     }
-    
+    // Password validation
+    if (!formData.password || !passwordRegex.test(formData.password)) {
+      alert('Password must be at least 8 characters long and contain at least one letter and one number.');
+      return;
+    }
+    // Confirm password
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    
-    if (formData.password.length < 6) {
-      alert('Password must be at least 6 characters long');
-      return;
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/sign-up', {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      });
+      alert('Registration successful!');
+      // Optionally redirect or clear form
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(error.response.data.message);
+      } else {
+        alert('Registration failed');
+      }
     }
-    
-    // Handle signup logic here
-    console.log('Signup attempt:', formData);
-    alert('Registration functionality would be implemented here');
   };
 
   return (
