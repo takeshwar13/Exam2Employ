@@ -16,18 +16,41 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * JWT Filter for authenticating and authorizing requests using JWT tokens.
+ * <p>
+ * - Extracts JWT from the Authorization header (Bearer token)
+ * - Validates the token and sets authentication in the security context
+ * - Rejects requests with invalid or missing tokens (except for public endpoints)
+ */
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
-    // ✅ Constructor injection to avoid circular dependency
+    /**
+     * Constructor for JwtFilter.
+     * @param jwtUtil Utility for JWT operations
+     * @param userDetailsService Loads user details for authentication
+     */
     public JwtFilter(JwtUtil jwtUtil, @Lazy UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * Filters each request to check for a valid JWT token in the Authorization header.
+     * <ul>
+     *   <li>If valid, sets authentication in the security context</li>
+     *   <li>If invalid or missing, continues without authentication (public endpoints only)</li>
+     * </ul>
+     * @param request HTTP request
+     * @param response HTTP response
+     * @param filterChain Filter chain
+     * @throws ServletException
+     * @throws IOException
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -38,7 +61,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = null;
         String username = null;
 
-        // ✅ Extract JWT token from Authorization header
+        // Extract JWT token from Authorization header
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             try {
@@ -48,7 +71,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        // ✅ Set authentication context if token valid
+        // Set authentication context if token valid
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             if (jwtUtil.validateToken(token, userDetails)) {
