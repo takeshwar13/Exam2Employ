@@ -3,6 +3,7 @@ package com.examserver2.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ public class TestController {
     @Autowired
     private TestService testService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<?> createTest(@RequestBody TestDTO dto) {
         try {
@@ -33,6 +35,7 @@ public class TestController {
         }
     }
     
+    @PreAuthorize("hasRole('ADMIN')") 
     @PostMapping("/question")
     public ResponseEntity<?> addQuestionInTest(@RequestBody QuestionRequestDTO dto) {
         try {
@@ -43,6 +46,7 @@ public class TestController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping
     public ResponseEntity<?> getAllTest() {
         try {
@@ -52,6 +56,7 @@ public class TestController {
         }
     }
     
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/{id}")
     public ResponseEntity<?> getAllQuestions(@PathVariable Long id) {
         try {
@@ -61,7 +66,7 @@ public class TestController {
         }
     }
     
-    
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/submit-test")
     public ResponseEntity<?> submitTest(@RequestBody SubmitTestDTO dto) {
         try {
@@ -71,6 +76,7 @@ public class TestController {
         }
     }
     
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/test-result")
     public ResponseEntity<?> getAllTestResults(){
     	 try {
@@ -81,6 +87,7 @@ public class TestController {
     	
     }
     
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/test-result/{id}")
     public ResponseEntity<?> getAllTestResultsOfUser(@PathVariable Long id){
     	 try {
