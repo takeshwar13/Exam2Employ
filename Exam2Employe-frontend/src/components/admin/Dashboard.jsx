@@ -137,7 +137,7 @@ const Dashboard = () => {
     }
   };
 
-  const QuestionModal = ({ isOpen, onClose, onSave, questionToEdit }) => {
+  const QuestionModal = ({ isOpen, onClose, onSave, questionToEdit, testId }) => {
     const [question, setQuestion] = useState(
       questionToEdit || {
         title: '',
@@ -159,7 +159,7 @@ const Dashboard = () => {
         alert('Please fill in all fields');
         return;
       }
-      onSave(question);
+      onSave({ ...question, testId });
     };
 
     if (!isOpen) return null;
@@ -353,6 +353,7 @@ const Dashboard = () => {
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveQuestion}
           questionToEdit={editingQuestion}
+          testId={activeTest} 
         />
       </div>
     );
@@ -405,6 +406,7 @@ const Dashboard = () => {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveQuestion}
         questionToEdit={editingQuestion}
+        testId={activeTest} 
       />
     </div>
   );
