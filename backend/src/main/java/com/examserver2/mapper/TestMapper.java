@@ -31,4 +31,12 @@ public class TestMapper {
         test.setTime(dto.getTime());
         return test;
     }
+    
+    public static void updateEntityFromDTO(Test test, TestDTO dto) {
+        if (test == null || dto == null) return;
+
+        test.setTitle(dto.getTitle());
+        test.setDescription(dto.getDescription());
+        test.setTime(dto.getTime()); // time per question
+    }
 }

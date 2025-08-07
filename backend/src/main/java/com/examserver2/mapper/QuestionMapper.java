@@ -21,7 +21,6 @@ public class QuestionMapper {
 
         return dto;
     }
-    
 
     public static QuestionResponseDTO2 toResponseDTO2(Question question) {
         if (question == null) return null;
@@ -33,7 +32,14 @@ public class QuestionMapper {
         return dto;
     }
     
-    
+    public static void updateEntityFromDTO(Question question, QuestionRequestDTO dto) {
+        question.setQuestionText(dto.getQuestionText());
+        question.setOptionA(dto.getOptionA());
+        question.setOptionB(dto.getOptionB());
+        question.setOptionC(dto.getOptionC());
+        question.setOptionD(dto.getOptionD());
+        question.setCorrectOption(dto.getCorrectOption());
+    }
 
     public static Question toEntity(QuestionRequestDTO dto) {
         if (dto == null) return null;
