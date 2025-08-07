@@ -1,3 +1,6 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 
 /**
@@ -25,50 +28,88 @@ const UserDashboard = ({ onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  u// src/components/user/UserDashboard.jsx
+
+const UserDashboard = () => {
+  const [tests, setTests] = useState([]);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          setError('User not authenticated.');
-          setLoading(false);
-          return;
-        }
-        const response = await getAllTests(token);
+        const response = await axios.get("http://localhost:8080/api/test", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         setTests(response.data);
       } catch (err) {
-        setError(err.response?.data || 'Failed to fetch tests');
-      } finally {
-        setLoading(false);
+        setError("Failed to fetch tests.");
+        console.error(err);
       }
     };
+
     fetchTests();
   }, []);
 
+  const startTest = (testId) => {
+    navigate(`/tests/${testId}`);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-2xl font-bold mb-4">Available Tests</h2>
+      {error && <div className="text-red-500 mb-2">{error}</div>}
+      {tests.length === 0 ? (
+        <p>No tests available.</p>
+      ) : (
+        <div className="space-y-4">
+          {tests.map((test) => (
+            <div key={test.id} className="p-4 border rounded bg-white shadow">
+              <h3 className="text-lg font-semibold">{test.title}</h3>
+              <p>{test.description}</p>
+              <p className="text-sm text-gray-500">Time: {test.time} min</p>
+              <button
+                className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => startTest(test.id)}
+              >
+                Start Test
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+
   // Sample results data
-  const results = [
-    {
-      id: 1,
-      testName: "Beginner Level Developer Test",
-      score: "8/10",
-      percentage: "80%",
-      timeSpent: "4:30",
-      dateCompleted: "2023-05-15"
-    },
-    {
-      id: 2,
-      testName: "Junior Level Developer Test",
-      score: "12/15",
-      percentage: "80%",
-      timeSpent: "12:45",
-      dateCompleted: "2023-06-20"
-    }
-  ];
+  // const results = [
+  //   {
+  //     id: 1,
+  //     testName: "Beginner Level Developer Test",
+  //     score: "8/10",
+  //     percentage: "80%",
+  //     timeSpent: "4:30",
+  //     dateCompleted: "2023-05-15"
+  //   },
+  //   {
+  //     id: 2,
+  //     testName: "Junior Level Developer Test",
+  //     score: "12/15",
+  //     percentage: "80%",
+  //     timeSpent: "12:45",
+  //     dateCompleted: "2023-06-20"
+  //   }
+  // ];
 
   const handleStartTest = (testId) => {
-    // In a real app, you would navigate to the test taking component
-    alert(`Starting test ${testId}`);
-  };
+  navigate(`/tests/${testId}`);
+};
+
 
   const handleNavigation = (tab) => {
     setActiveTab(tab);
