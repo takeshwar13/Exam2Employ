@@ -96,13 +96,19 @@ public class TestServiceImpl implements TestService {
         double percentage = (double) correctAnswers / totalQuestions * 100;
         
         TestResult testResult = new TestResult();
-        testResult.setTest(test);
-        testResult.setUser(user);
+        
+//        System.out.println(test.getId() +" "+ user.getId());  
+        
+        
+        testResult.setTest(test); 
+        testResult.setUser(user);	
         testResult.setTotalQuestions(totalQuestions);
         testResult.setCorrectAnswers(correctAnswers);
         testResult.setPercentage(percentage);
-
+        
         testResultRepository.save(testResult);
+        System.out.println(testResult.getTest().getId());
+        
         
         return TestResultMapper.toDto(testResult);
            

@@ -9,6 +9,7 @@ public class TestResultMapper {
         if (testResult == null) {
             return null;
         }
+//        System.out.println(testResult.getTest().getId());
 
         TestResultDTO dto = new TestResultDTO();
         dto.setId(testResult.getId());
@@ -16,13 +17,11 @@ public class TestResultMapper {
         dto.setCorrectAnswers(testResult.getCorrectAnswers());
         dto.setPercentage(testResult.getPercentage());
 
-        // Safely extracting nested fields
         if (testResult.getTest() != null) {
-            dto.setTestName(testResult.getTest().getTitle());
+            dto.setTestId(testResult.getTest().getId());
         }
-
         if (testResult.getUser() != null) {
-            dto.setUserName(testResult.getUser().getName());
+            dto.setUserId(testResult.getUser().getId());
         }
 
         return dto;
