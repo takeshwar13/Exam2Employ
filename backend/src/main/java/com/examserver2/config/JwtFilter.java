@@ -1,7 +1,6 @@
 package com.examserver2.config;
 
 import java.io.IOException;
-import java.security.Principal;
 
 import org.springframework.context.annotation.Lazy;  // ✅ Import @Lazy
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

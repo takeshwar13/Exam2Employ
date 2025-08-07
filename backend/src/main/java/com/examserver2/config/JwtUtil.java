@@ -4,7 +4,6 @@ import java.util.Date;
 import java.security.Key;  // ✅ NEW: For secure key
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.Keys;  // ✅ NEW: To generate Key securely
 
 import org.springframework.security.core.userdetails.UserDetails;

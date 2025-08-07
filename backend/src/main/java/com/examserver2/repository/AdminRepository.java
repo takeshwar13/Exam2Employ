@@ -6,7 +6,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.examserver2.entities.User;
 import com.examserver2.dto.CandidateResultDTO;
-import com.examserver2.entities.TestResult;
 import java.util.List;
 
 @Repository
