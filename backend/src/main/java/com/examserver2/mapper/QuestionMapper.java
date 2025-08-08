@@ -11,17 +11,20 @@ import org.springframework.stereotype.Component;
 public class QuestionMapper {
 
     public static QuestionResponseDTO toResponseDTO(Question question) {
-        if (question == null) return null;
+    if (question == null) return null;
 
-        QuestionResponseDTO dto = new QuestionResponseDTO();
-        dto.setId(question.getId());
-        dto.setQuestionText(question.getQuestionText());
-        dto.setCorrectOption(question.getCorrectOption());
-        dto.setTestId(question.getTest().getId()); // assuming `Question` has a Test relationship
+    QuestionResponseDTO dto = new QuestionResponseDTO();
+    dto.setId(question.getId());
+    dto.setQuestionText(question.getQuestionText());
+    dto.setOptionA(question.getOptionA());
+    dto.setOptionB(question.getOptionB());
+    dto.setOptionC(question.getOptionC());
+    dto.setOptionD(question.getOptionD());
+    dto.setCorrectOption(question.getCorrectOption());
+    dto.setTestId(question.getTest().getId()); // assuming `Question` has a Test relationship
 
-        return dto;
+    return dto;
     }
-    
 
     public static QuestionResponseDTO2 toResponseDTO2(Question question) {
         if (question == null) return null;
@@ -33,7 +36,14 @@ public class QuestionMapper {
         return dto;
     }
     
-    
+    public static void updateEntityFromDTO(Question question, QuestionRequestDTO dto) {
+        question.setQuestionText(dto.getQuestionText());
+        question.setOptionA(dto.getOptionA());
+        question.setOptionB(dto.getOptionB());
+        question.setOptionC(dto.getOptionC());
+        question.setOptionD(dto.getOptionD());
+        question.setCorrectOption(dto.getCorrectOption());
+    }
 
     public static Question toEntity(QuestionRequestDTO dto) {
         if (dto == null) return null;

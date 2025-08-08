@@ -4,7 +4,6 @@ import java.util.Date;
 import java.security.Key;  // ✅ NEW: For secure key
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.Keys;  // ✅ NEW: To generate Key securely
 
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,13 +30,15 @@ public class JwtUtil {
 
 
     /**
-     * Generates a JWT token for the given username.
+     * Generates a JWT token for the given username and role.
      * @param username the username to include in the token
+     * @param role the user's role to include as a claim
      * @return signed JWT token (valid for 1 day)
      */
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day expiry
                 .signWith(key, SignatureAlgorithm.HS256)

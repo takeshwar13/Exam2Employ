@@ -182,7 +182,7 @@ const ViewResults = () => {
               onChange={(e) => setSelectedTestId(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Select Test</option>
+              <option value="">All Tests</option>
               {testOptions.map((test) => (
                 <option key={test.id} value={test.id}>
                   {test.title}

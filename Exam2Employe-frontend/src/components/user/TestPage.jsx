@@ -1,279 +1,236 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
+import { NavbarVisibilityContext } from './UserLayout';
+import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, ChevronLeft, Maximize, Minimize } from 'lucide-react';
 
 const TestPage = () => {
   const { testId } = useParams();
   const navigate = useNavigate();
-  const testDuration = 300; // 5 minutes in seconds
-  const [timeLeft, setTimeLeft] = useState(testDuration);
+  const [test, setTest] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [started, setStarted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const { setShowNavbar } = useContext(NavbarVisibilityContext);
 
-  // Use a ref to store the start time of the test
-  const startTimeRef = useRef(Date.now());
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('userId');
 
-  // Mock test questions data
-  const mockQuestions = [
-    {
-      id: 1,
-      text: "What does HTML stand for?",
-      options: [
-        "Hypertext Markup Language",
-        "Hyperlink Markup Language",
-        "Home Tool Markup Language",
-        "Hyper Text Multiple Language"
-      ]
-    },
-    {
-      id: 2,
-      text: "Which of the following is a JavaScript framework?",
-      options: [
-        "Django",
-        "React",
-        "Flask",
-        "Rails"
-      ]
-    },
-    {
-      id: 3,
-      text: "Which is used to style web pages?",
-      options: [
-        "HTML",
-        "CSS",
-        "JavaScript",
-        "SQL"
-      ]
-    }
-  ];
-
-  // Helper functions for Fullscreen API
-  const enterFullScreen = () => {
-    const element = document.documentElement;
-    if (element.requestFullscreen) {
-      element.requestFullscreen().catch(err => {
-        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
-      });
-    } else if (element.mozRequestFullScreen) {
-      element.mozRequestFullScreen();
-    } else if (element.webkitRequestFullscreen) {
-      element.webkitRequestFullscreen();
-    } else if (element.msRequestFullscreen) {
-      element.msRequestFullscreen();
-    }
-  };
-
-  const exitFullScreen = () => {
-    if (document.fullscreenElement) {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
-      }
-    }
-  };
-
-  // The function to submit the test.
-  const handleSubmitTest = async () => {
-    // Only submit if not already submitting
-    if (isLoading) return;
-    
-    setIsLoading(true);
-    try {
-      // Simulate API submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Test submitted with answers:', answers);
-      exitFullScreen(); // Exit full-screen on submission
-      navigate('/results');
-    } catch (err) {
-      setError('Failed to submit test');
-      console.error('Error submitting test:', err);
-      setIsLoading(false);
-    }
-  };
-
-  // Fetch test questions and initialize start time
   useEffect(() => {
-    const fetchTestQuestions = async () => {
+    const fetchTest = async () => {
       try {
-        setIsLoading(true);
-        // Using mock data instead of API call
-        setQuestions(mockQuestions);
-        const initialAnswers = {};
-        mockQuestions.forEach((q) => {
-          initialAnswers[q.id] = null;
+        const response = await axios.get(`http://localhost:8080/api/test/${testId}`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
-        setAnswers(initialAnswers);
 
-        // Initialize the start time when the test data is loaded
-        startTimeRef.current = Date.now();
+        console.log('API Response:', response.data);
 
+        if (!response.data || !response.data.testDTO || !response.data.questions) {
+          throw new Error("Invalid test data structure");
+        }
+
+        const processedQuestions = response.data.questions.map(question => ({
+          ...question,
+          options: [
+            question.optionA,
+            question.optionB,
+            question.optionC,
+            question.optionD
+          ].filter(option => option !== null && option !== '')
+        }));
+
+        setTest(response.data.testDTO);
+        setQuestions(processedQuestions);
+        setTimeLeft((response.data.testDTO.time || 10) * 60);
       } catch (err) {
-        setError('Failed to load test questions');
         console.error('Error fetching test:', err);
+        setError(err.response?.data?.message || err.message || 'Failed to load test.');
+        if (err.response?.status === 401) {
+          navigate('/login');
+        }
       } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchTestQuestions();
-  }, [testId]);
-
-  // Timer countdown and auto-submit with corrected logic
-  useEffect(() => {
-    // We only set the timer if the questions have loaded
-    if (!questions.length) return;
-
-    const timerInterval = setInterval(() => {
-      const elapsedTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
-      const remainingTime = testDuration - elapsedTime;
-
-      if (remainingTime > 0) {
-        setTimeLeft(remainingTime);
-      } else {
-        setTimeLeft(0);
-        clearInterval(timerInterval);
-        handleSubmitTest();
-      }
-    }, 1000);
-
-    // Cleanup function
-    return () => clearInterval(timerInterval);
-  }, [questions.length, testId, handleSubmitTest]);
-
-  // Tab Change Warning and Full-Screen state management
-  useEffect(() => {
-    const handleFullScreenChange = () => {
-      setIsFullScreen(!!document.fullscreenElement);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        alert("Warning: Switching tabs during the test is not allowed. Your test may be automatically submitted.");
+        setLoading(false);
       }
     };
 
-    document.addEventListener('fullscreenchange', handleFullScreenChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    fetchTest();
+  }, [testId, token, navigate]);
 
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullScreenChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  const toggleFullScreen = () => {
-    if (!isFullScreen) {
-      enterFullScreen();
-    } else {
-      exitFullScreen();
-    }
+  const startTest = () => {
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    setShowNavbar(false);
+    setStarted(true);
   };
 
-  // Format time as MM:SS
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
-  const handleAnswerSelect = (questionId, optionIndex) => {
+  const handleOptionSelect = (questionId, optionIndex) => {
     setAnswers(prev => ({
       ...prev,
       [questionId]: optionIndex
     }));
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading test...</div>
-      </div>
-    );
-  }
 
-  if (error) {
+
+  const handleSubmit = useCallback(async () => {
+    if (!window.confirm('Are you sure you want to submit your test?')) return;
+    setSubmitting(true);
+    try {
+      // Validate all required IDs
+      if (!testId || testId === 'undefined' || testId === 'null') {
+        throw new Error("Test ID is missing or invalid");
+      }
+      if (!userId || userId === 'undefined' || userId === 'null') {
+        throw new Error("User ID is missing. Please log in again.");
+      }
+      // Prepare responses
+      const responses = Object.entries(answers)
+        .filter(([_, optionIndex]) => optionIndex !== undefined)
+        .map(([questionId, optionIndex]) => {
+          const qId = parseInt(questionId);
+          if (!qId || isNaN(qId)) {
+            throw new Error(`Invalid question ID: ${questionId}`);
+          }
+          return {
+            questionId: qId,
+            selectedOption: ['A', 'B', 'C', 'D'][optionIndex]
+          };
+        });
+      if (responses.length === 0) {
+        throw new Error("No answers provided. Please answer at least one question.");
+      }
+      // Calculate time spent in seconds
+      let totalTestSeconds = (test?.time || 10) * 60;
+      let timeSpentSeconds = totalTestSeconds - timeLeft;
+      if (timeSpentSeconds < 0) timeSpentSeconds = 0;
+      const payload = {
+        testId: parseInt(testId),
+        userId: parseInt(userId),
+        responses: responses,
+        timeSpentSeconds: timeSpentSeconds
+      };
+      await axios.post(
+        'http://localhost:8080/api/test/submit-test',
+        payload,
+        {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      alert('Test submitted successfully!');
+      setShowNavbar(true);
+      navigate('/user-dashboard');
+    } catch (err) {
+      console.error('Submission error:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        fullError: err
+      });
+      let errorMessage = 'Failed to submit test. Please try again.';
+      if (err.response?.data) {
+        errorMessage = typeof err.response.data === 'string' 
+          ? err.response.data 
+          : err.response.data.message || errorMessage;
+      }
+      alert(errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [answers, test, testId, timeLeft, token, userId, setShowNavbar, navigate]);
+
+  useEffect(() => {
+    if (!started) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          handleSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [started, handleSubmit]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  if (loading) return <div className="text-center py-8">Loading test...</div>;
+  if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
+
+  if (!started) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-red-500">{error}</div>
+      <div className="max-w-2xl mx-auto p-6">
+        <h2 className="text-2xl font-bold mb-4">{test?.title}</h2>
+        <p className="mb-4">{test?.description}</p>
+        <div className="mb-6">
+          <p><span className="font-semibold">Duration:</span> {test?.time} minutes</p>
+          <p><span className="font-semibold">Questions:</span> {questions.length}</p>
+        </div>
+        <button 
+          onClick={startTest}
+          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+        >
+          Start Test
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 pt-20">
-      <div className="fixed top-0 left-0 w-full bg-white shadow-md p-4 flex justify-between items-center z-50">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-blue-600 hover:text-blue-800"
-        >
-          <ChevronLeft className="h-5 w-5 mr-1" />
-          Back to Tests
-        </button>
-        <div className="flex-1 text-center">
-          <h1 className="text-xl font-bold text-gray-800">Quiz App</h1>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center text-red-600">
-            <Clock className="h-5 w-5 mr-2" />
-            <span className="font-medium">Time remaining: {formatTime(timeLeft)}</span>
-          </div>
-          <button onClick={toggleFullScreen} className="text-gray-600 hover:text-gray-800">
-            {isFullScreen ? (
-              <Minimize className="h-6 w-6" />
-            ) : (
-              <Maximize className="h-6 w-6" />
-            )}
-          </button>
+    <div className="max-w-2xl mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold">{test?.title}</h2>
+        <div className="bg-gray-100 px-3 py-1 rounded">
+          <span className="font-medium">Time Left: </span>
+          <span className="text-red-600">{formatTime(timeLeft)}</span>
         </div>
       </div>
 
-      <div className="space-y-8 mt-20">
+      <div className="space-y-6">
         {questions.map((question, qIndex) => (
-          <div key={question.id} className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              {qIndex + 1}. {question.text}
-            </h3>
-
-            <div className="space-y-3">
-              {question.options.map((option, oIndex) => (
-                <div
-                  key={oIndex}
-                  className={`flex items-center p-3 border rounded-md cursor-pointer ${
-                    answers[question.id] === oIndex
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
-                  onClick={() => handleAnswerSelect(question.id, oIndex)}
+          <div key={question.id} className="border p-4 rounded-lg shadow-sm">
+            <h3 className="font-medium mb-3">{qIndex + 1}. {question.questionText}</h3>
+            <div className="space-y-2">
+              {question.options.map((option, optIndex) => (
+                <label 
+                  key={optIndex} 
+                  className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
                 >
                   <input
                     type="radio"
                     name={`question-${question.id}`}
-                    checked={answers[question.id] === oIndex}
-                    onChange={() => {}}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    checked={answers[question.id] === optIndex}
+                    onChange={() => handleOptionSelect(question.id, optIndex)}
+                    className="h-4 w-4"
                   />
-                  <span className="ml-3">{option}</span>
-                </div>
+                  <span>{['A', 'B', 'C', 'D'][optIndex]}. {option}</span>
+                </label>
               ))}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-8 flex justify-end">
+      <div className="mt-8 text-center">
         <button
-          onClick={handleSubmitTest}
-          disabled={isLoading}
-          className="px-6 py-3 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors disabled:opacity-75"
+          onClick={handleSubmit}
+          disabled={submitting}
+          className={`px-8 py-2 rounded text-white ${submitting ? 'bg-gray-500' : 'bg-green-600 hover:bg-green-700'}`}
         >
-          {isLoading ? 'Submitting...' : 'Submit Test'}
+          {submitting ? 'Submitting...' : 'Submit Test'}
         </button>
       </div>
     </div>

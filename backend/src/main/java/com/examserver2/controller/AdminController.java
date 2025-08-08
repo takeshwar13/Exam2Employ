@@ -2,13 +2,10 @@ package com.examserver2.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.examserver2.dto.CandidateResultDTO;
 import com.examserver2.service.admin.AdminService;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
 
@@ -25,7 +22,6 @@ public class AdminController {
 	@Autowired
 	private AdminService adminService;
     
-	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/search")
     public  ResponseEntity<List<CandidateResultDTO>> searchCandidates(
     		@RequestParam Long testId,
@@ -36,7 +32,6 @@ public class AdminController {
     	return ResponseEntity.ok(results);
     }
 	
-	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/export")
 	public void exportCandidatesToCsv(
 	        @RequestParam Long testId,

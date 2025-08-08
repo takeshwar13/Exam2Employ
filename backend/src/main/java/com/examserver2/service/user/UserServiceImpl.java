@@ -1,5 +1,6 @@
 package com.examserver2.service.user;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class UserServiceImpl implements UserService {
     // Only create a default admin if no admin exists, but do not restrict login to this account.
     @PostConstruct
     private void createAdminUser() {
-        if (userRepository.findByRole(UserRole.ADMIN) == null) {
+        if (userRepository.findByRole(UserRole.ADMIN).isEmpty()) {
             User user = new User();
             user.setName("Admin");
             user.setEmail("admin@gmail.com");
@@ -61,7 +62,16 @@ public class UserServiceImpl implements UserService {
         }
         return null;
     }
+    
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 
 
+    @Override
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
 }
 

@@ -2,10 +2,24 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+
+
 import { Plus, Eye, Edit2, Trash2, Save, X, Clock, ChevronLeft } from 'lucide-react';
+import { deleteTest as deleteTestApi } from '../../api/testApi';
 
 
 const Dashboard = () => {
+  // Delete test handler
+  const handleDeleteTest = async (testId) => {
+    if (window.confirm('Are you sure you want to delete this test? This action cannot be undone.')) {
+      try {
+        await deleteTestApi(testId);
+        await fetchTests();
+      } catch (error) {
+        alert('Failed to delete test: ' + (error.response?.data?.message || error.message));
+      }
+    }
+  };
   const [tests, setTests] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTest, setActiveTest] = useState(null);
@@ -43,9 +57,23 @@ const Dashboard = () => {
     setIsModalOpen(true);
   };
 
-  const handleViewTest = (testId) => {
+  const handleViewTest = async (testId) => {
     setActiveTest(testId);
     setViewMode('detail');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8080/api/test/${testId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // response.data is TestDetailsDTO, use .questions property
+      setTests(prevTests => prevTests.map(test =>
+        test.id === testId ? { ...test, questions: response.data.questions || [] } : test
+      ));
+    } catch (error) {
+      console.error('Error fetching questions:', error.response?.data || error.message);
+    }
   };
 
   const handleBackToList = () => {
@@ -75,6 +103,7 @@ const Dashboard = () => {
 
       if (questionData.id) {
         // Update existing question
+        console.log('Updating question with payload:', payload);
         await axios.put(
           `http://localhost:8080/api/test/question/${questionData.id}`,
           payload,
@@ -87,6 +116,7 @@ const Dashboard = () => {
         );
       } else {
         // Add new question
+        console.log('Adding new question with payload:', payload);
         await axios.post(
           'http://localhost:8080/api/test/question',
           payload,
@@ -99,11 +129,16 @@ const Dashboard = () => {
         );
       }
 
-      // Refresh tests from backend after successful add/update
-      await fetchTests();
+      // Refresh current test's questions after successful add/update
+      if (activeTest) {
+        await handleViewTest(activeTest);
+      } else {
+        await fetchTests();
+      }
       setIsModalOpen(false);
       setEditingQuestion(null);
     } catch (error) {
+      
       alert(
         'Failed to save question: ' +
           (error.response?.data?.message || error.message)
@@ -112,34 +147,41 @@ const Dashboard = () => {
   };
 
   const handleEditQuestion = (question) => {
-    // If the question object has an 'options' array (from old data), map it to optiona, optionb, etc.
-    if (question.options && Array.isArray(question.options)) {
-      setEditingQuestion({
-        ...question,
-        optiona: question.options[0] || '',
-        optionb: question.options[1] || '',
-        optionc: question.options[2] || '',
-        optiond: question.options[3] || '',
-      });
-    } else {
-      setEditingQuestion(question);
-    }
+    // Always map backend DTO fields to modal fields for editing
+    setEditingQuestion({
+      ...question,
+      text: question.questionText || question.text || '',
+      optiona: question.optionA || question.optiona || '',
+      optionb: question.optionB || question.optionb || '',
+      optionc: question.optionC || question.optionc || '',
+      optiond: question.optionD || question.optiond || '',
+      correctOption: question.correctOption || '',
+    });
     setIsModalOpen(true);
   };
 
-  const handleDeleteQuestion = (testId, questionId) => {
+  const handleDeleteQuestion = async (testId, questionId) => {
     if (window.confirm('Are you sure you want to delete this question?')) {
-      setTests(prevTests => {
-        return prevTests.map(test => {
-          if (test.id === testId) {
-            return {
-              ...test,
-              questions: test.questions.filter(q => q.id !== questionId)
-            };
-          }
-          return test;
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`http://localhost:8080/api/test/question/${questionId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-      });
+        // Refresh current test's questions
+        if (activeTest) {
+          await handleViewTest(activeTest);
+        } else {
+          await fetchTests();
+        }
+      } catch (error) {
+        console.error('Error deleting question:', error);
+        if (error.response) {
+          console.error('Backend response:', error.response.data);
+        }
+        alert('Failed to delete question.');
+      }
     }
   };
 
@@ -358,7 +400,7 @@ const Dashboard = () => {
               <div key={question.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="flex justify-between items-start mb-4">
                   <h4 className="text-lg font-semibold text-gray-800">
-                    {qIndex + 1}. {question.text}
+                    {qIndex + 1}. {question.questionText}
                   </h4>
                   <div className="flex space-x-2">
                     <button
@@ -377,9 +419,9 @@ const Dashboard = () => {
                     </button>
                   </div>
                 </div>
-                <p className="text-gray-600 mb-4">{question.text}</p>
+                <p className="text-gray-600 mb-4">{question.questionText}</p>
                 <div className="space-y-2">
-                  {['optiona', 'optionb', 'optionc', 'optiond'].map((key, oIndex) => (
+                  {['optionA', 'optionB', 'optionC', 'optionD'].map((key, oIndex) => (
                     <div
                       key={key}
                       className={`p-3 border rounded-md ${
@@ -433,20 +475,29 @@ const Dashboard = () => {
                 )}
               </div>
               
-              <div className="flex space-x-3">
+              <div className="flex flex-col items-end space-y-2">
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => handleAddQuestion(test.id)}
+                    className="flex items-center px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Question
+                  </button>
+                  <button
+                    onClick={() => handleViewTest(test.id)}
+                    className="flex items-center px-4 py-2 border border-blue-900 text-blue-900 rounded-md hover:bg-blue-50 transition-colors"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Test
+                  </button>
+                </div>
                 <button
-                  onClick={() => handleAddQuestion(test.id)}
-                  className="flex items-center px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors"
+                  onClick={() => handleDeleteTest(test.id)}
+                  className="flex items-center px-4 py-2 border border-red-600 text-red-600 rounded-md hover:bg-red-50 transition-colors mt-2"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Question
-                </button>
-                <button
-                  onClick={() => handleViewTest(test.id)}
-                  className="flex items-center px-4 py-2 border border-blue-900 text-blue-900 rounded-md hover:bg-blue-50 transition-colors"
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Test
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Test
                 </button>
               </div>
             </div>

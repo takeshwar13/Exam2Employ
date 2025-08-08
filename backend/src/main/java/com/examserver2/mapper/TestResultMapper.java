@@ -9,6 +9,7 @@ public class TestResultMapper {
         if (testResult == null) {
             return null;
         }
+//        System.out.println(testResult.getTest().getId());
 
         TestResultDTO dto = new TestResultDTO();
         dto.setId(testResult.getId());
@@ -16,14 +17,16 @@ public class TestResultMapper {
         dto.setCorrectAnswers(testResult.getCorrectAnswers());
         dto.setPercentage(testResult.getPercentage());
 
-        // Safely extracting nested fields
         if (testResult.getTest() != null) {
+            dto.setTestId(testResult.getTest().getId());
             dto.setTestName(testResult.getTest().getTitle());
         }
-
         if (testResult.getUser() != null) {
-            dto.setUserName(testResult.getUser().getName());
+            dto.setUserId(testResult.getUser().getId());
         }
+
+    // Map timeSpentSeconds
+    dto.setTimeSpentSeconds(testResult.getTimeSpentSeconds());
 
         return dto;
     }
@@ -36,6 +39,9 @@ public class TestResultMapper {
         testResult.setTotalQuestions(testResultDTO.getTotalQuestions());
         testResult.setCorrectAnswers(testResultDTO.getCorrectAnswers());
         testResult.setPercentage(testResultDTO.getPercentage());
+
+    // Map timeSpentSeconds
+    testResult.setTimeSpentSeconds(testResultDTO.getTimeSpentSeconds());
 
         return testResult;
     }

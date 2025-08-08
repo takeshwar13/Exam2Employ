@@ -1,22 +1,24 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Save } from "lucide-react";
 
 const CreateTest = () => {
+  // --- EXISTING STATE MANAGEMENT (UNCHANGED) ---
   const [testData, setTestData] = useState({
     title: "",
     description: "",
-    time: ""
+    time: "",
   });
 
   const [questions, setQuestions] = useState([
     {
       text: "",
       options: ["", "", "", ""],
-      correctOption: 0
-    }
+      correctOption: 0,
+    },
   ]);
 
+  // --- EXISTING FUNCTIONS AND API LOGIC (UNCHANGED) ---
   const handleTestChange = (e) => {
     setTestData({ ...testData, [e.target.name]: e.target.value });
   };
@@ -40,7 +42,7 @@ const CreateTest = () => {
   const addQuestion = () => {
     setQuestions([
       ...questions,
-      { text: "", options: ["", "", "", ""], correctOption: 0 }
+      { text: "", options: ["", "", "", ""], correctOption: 0 },
     ]);
   };
 
@@ -53,14 +55,18 @@ const CreateTest = () => {
   const handleSubmit = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Authentication token is missing. Please log in again.");
+        return;
+      }
 
       const testResponse = await axios.post(
         "http://localhost:8080/api/test",
         testData,
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -71,14 +77,18 @@ const CreateTest = () => {
           "http://localhost:8080/api/test/question",
           {
             testId,
-            text: question.text,
-            options: question.options,
-            correctOption: question.correctOption
+            questionText: question.text,
+            optionA: question.options[0],
+            optionB: question.options[1],
+            optionC: question.options[2],
+            optionD: question.options[3],
+            correctOption: question.correctOption,
           },
           {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
         );
       }
@@ -88,98 +98,152 @@ const CreateTest = () => {
       setQuestions([{ text: "", options: ["", "", "", ""], correctOption: 0 }]);
     } catch (error) {
       console.error("Error creating test:", error);
+      
       alert("Failed to create test");
     }
   };
 
+  // --- NEW UI IMPLEMENTATION ---
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">Create Test</h2>
-
-      <div className="space-y-4 mb-6">
-        <input
-          type="text"
-          name="title"
-          placeholder="Test Title"
-          value={testData.title}
-          onChange={handleTestChange}
-          className="w-full border p-2 rounded"
-        />
-        <textarea
-          name="description"
-          placeholder="Test Description"
-          value={testData.description}
-          onChange={handleTestChange}
-          className="w-full border p-2 rounded"
-        />
-        <input
-          type="number"
-          name="time"
-          placeholder="Time Limit (minutes)"
-          value={testData.time}
-          onChange={handleTestChange}
-          className="w-full border p-2 rounded"
-        />
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          Create New Test
+        </h1>
+        <p className="text-gray-600">Design and configure your quiz</p>
       </div>
 
-      <h3 className="text-xl font-medium mb-2">Questions</h3>
-      {questions.map((q, index) => (
-        <div key={index} className="border p-4 mb-4 rounded bg-gray-50">
-          <div className="mb-2 flex justify-between items-center">
-            <h4 className="font-medium">Question {index + 1}</h4>
-            {questions.length > 1 && (
-              <button
-                onClick={() => removeQuestion(index)}
-                className="text-red-500 hover:text-red-700"
-              >
-                <Trash2 size={20} />
-              </button>
-            )}
+      {/* Test Configuration */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          Test Configuration
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Test Title *
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={testData.title}
+              onChange={handleTestChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter test title"
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Question Text"
-            value={q.text}
-            onChange={(e) =>
-              handleQuestionChange(index, "text", e.target.value)
-            }
-            className="w-full mb-2 p-2 border rounded"
-          />
-          {q.options.map((option, optIndex) => (
-            <div key={optIndex} className="mb-1 flex items-center gap-2">
-              <input
-                type="text"
-                placeholder={`Option ${optIndex + 1}`}
-                value={option}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Time Limit (minutes)
+            </label>
+            <input
+              type="number"
+              name="time"
+              value={testData.time}
+              onChange={handleTestChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., 30"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description *
+            </label>
+            <textarea
+              name="description"
+              value={testData.description}
+              onChange={handleTestChange}
+              rows="3"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Describe the test content and objectives"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Questions Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Questions ({questions.length})
+          </h2>
+          <button
+            onClick={addQuestion}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" /> Add Question
+          </button>
+        </div>
+
+        {/* Questions List */}
+        <div className="space-y-4">
+          {questions.map((q, index) => (
+            <div
+              key={index}
+              className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-medium text-gray-800">
+                  Question {index + 1}
+                </h4>
+                {questions.length > 1 && (
+                  <button
+                    onClick={() => removeQuestion(index)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                )}
+              </div>
+              <textarea
+                placeholder="Enter your question"
+                value={q.text}
                 onChange={(e) =>
-                  handleQuestionChange(index, optIndex, e.target.value)
+                  handleQuestionChange(index, "text", e.target.value)
                 }
-                className="flex-grow p-2 border rounded"
+                rows="2"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
               />
-              <input
-                type="radio"
-                name={`correctOption-${index}`}
-                checked={q.correctOption === optIndex}
-                onChange={() => handleCorrectOptionChange(index, optIndex)}
-              />
-              <label>Correct</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {q.options.map((option, optIndex) => (
+                  <div
+                    key={optIndex}
+                    className="flex items-center gap-3 bg-white p-2 border border-gray-300 rounded-md"
+                  >
+                    <input
+                      type="radio"
+                      name={`correctOption-${index}`}
+                      checked={q.correctOption === optIndex}
+                      onChange={() => handleCorrectOptionChange(index, optIndex)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    />
+                    <input
+                      type="text"
+                      placeholder={`Option ${optIndex + 1}`}
+                      value={option}
+                      onChange={(e) =>
+                        handleQuestionChange(index, optIndex, e.target.value)
+                      }
+                      className="w-full border-none focus:ring-0 p-0 text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
-      ))}
+      </div>
 
-      <button
-        onClick={addQuestion}
-        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        <Plus size={18} /> Add Question
-      </button>
-
-      <div className="mt-6">
+      {/* Save Button */}
+      <div className="flex justify-end">
         <button
           onClick={handleSubmit}
-          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors duration-200 flex items-center gap-2"
         >
+          <Save className="h-4 w-4" />
           Save Test
         </button>
       </div>

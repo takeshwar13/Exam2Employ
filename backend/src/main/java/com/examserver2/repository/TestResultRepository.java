@@ -11,4 +11,6 @@ import com.examserver2.entities.TestResult;
 public interface TestResultRepository extends JpaRepository<TestResult, Long>{
 
 	List<TestResult> findAllByUserId(Long userId);
+
+	boolean existsByUser_IdAndTest_Id(Long userId, Long testId);
 }

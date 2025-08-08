@@ -7,9 +7,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Data
+
 public class TestResult {
 
     @Id
@@ -27,5 +30,7 @@ public class TestResult {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    private int timeSpentSeconds;
 }
 

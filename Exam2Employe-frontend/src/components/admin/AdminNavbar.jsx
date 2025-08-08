@@ -48,6 +48,18 @@ const AdminNavbar = ({ onLogout }) => {
             <BarChart2 className="h-5 w-5 mr-2" />
             View Results
           </Link>
+          <Link
+            to="/manage-users"
+            className={`flex items-center px-3 py-2 ${
+              isActive('manage-users')
+                ? 'text-blue-200 border-b-2 border-blue-200'
+                : 'text-white hover:text-blue-200'
+            } transition-colors duration-200 font-medium`}
+          >
+            {/* You can use a user icon here if you want */}
+            <span className="h-5 w-5 mr-2">👤</span>
+            Manage Users
+          </Link>
           <button 
             onClick={onLogout}
             className="flex items-center px-3 py-2 text-white hover:text-blue-200 transition-colors duration-200 font-medium"

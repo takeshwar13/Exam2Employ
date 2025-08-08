@@ -1,18 +1,19 @@
+    
 package com.examserver2.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.examserver2.dto.QuestionRequestDTO;
 import com.examserver2.dto.SubmitTestDTO;
 import com.examserver2.dto.TestDTO;
 import com.examserver2.service.test.TestService;
@@ -32,17 +33,13 @@ public class TestController {
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/question")
-    public ResponseEntity<?> addQuestionInTest(@RequestBody QuestionRequestDTO dto) {
-        try {
-//        	System.out.println("hello i am here");
-            return new ResponseEntity<>(testService.addQuestionInTest(dto), HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    }  
+    
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/attempted/{testId}/{userId}")
+    public ResponseEntity<?> hasUserAttemptedTest(@PathVariable Long testId, @PathVariable Long userId) {
+        boolean attempted = testService.hasUserAttemptedTest(userId, testId);
+        return ResponseEntity.ok(attempted);
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
@@ -55,11 +52,22 @@ public class TestController {
         }
     }
     
-    @PreAuthorize("hasAnyRole('ADMIN','USER')")
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getAllQuestions(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateTest(@PathVariable Long id, @RequestBody TestDTO dto) {
         try {
-            return new ResponseEntity<>(testService.getAllQuestionsByTest(id), HttpStatus.OK);
+            return new ResponseEntity<>(testService.updateTest(id, dto), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTest(@PathVariable Long id) {
+        try {
+            testService.deleteTest(id);
+            return new ResponseEntity<>("Test deleted successfully", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -96,5 +104,6 @@ public class TestController {
          }
     	
     }
+
 }
 

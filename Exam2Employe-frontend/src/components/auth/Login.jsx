@@ -35,9 +35,12 @@ const Login = ({ onRegisterClick, onLogin }) => {
       if (!loginResponse.user) {
         throw new Error('Invalid response from server');
       }
-      // Store JWT token in localStorage for authenticated requests
+      // Store JWT token and userId in localStorage for authenticated requests
       if (loginResponse.token) {
         localStorage.setItem('token', loginResponse.token);
+      }
+      if (loginResponse.user && loginResponse.user.id) {
+        localStorage.setItem('userId', loginResponse.user.id);
       }
       onLogin(loginResponse.user);
     } catch (error) {
@@ -55,13 +58,6 @@ const Login = ({ onRegisterClick, onLogin }) => {
           Login to E2E
         </h2>
         
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-sm text-blue-700">
-            <strong>Demo Credentials:</strong><br />
-            Admin: admin@quiz.com / admin123<br />
-            User: user@quiz.com / user123
-          </p>
-        </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="relative">

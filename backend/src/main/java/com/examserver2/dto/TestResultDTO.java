@@ -11,8 +11,8 @@ public class TestResultDTO {
     private int correctAnswers;
     private double percentage;
 
-    private String testName;
-    
-    private String userName;
-
+    private Long testId;
+    private String testName; // Added for frontend display
+    private Long userId;
+    private int timeSpentSeconds;
 }
