@@ -13,6 +13,7 @@ const Dashboard = () => {
   const handleDeleteTest = async (testId) => {
     if (window.confirm('Are you sure you want to delete this test? This action cannot be undone.')) {
       try {
+
         await deleteTestApi(testId);
         await fetchTests();
       } catch (error) {
@@ -20,11 +21,14 @@ const Dashboard = () => {
       }
     }
   };
+  
+  // State management for tests and modal
   const [tests, setTests] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTest, setActiveTest] = useState(null);
   const [viewMode, setViewMode] = useState('list');
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch tests from API (preserve original API logic)
   const fetchTests = async () => {
@@ -453,15 +457,31 @@ const Dashboard = () => {
     );
   }
 
+  // Filter tests by search term
+  const filteredTests = tests.filter(test =>
+    test.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // List view
   return (
     <div className="max-w-6xl mx-auto p-6 pt-20">
       <h1 className="text-2xl font-bold text-gray-800 mb-8">Admin Dashboard</h1>
       
+      {/* Search Bar */}
+      <div className="mb-8 flex justify-center">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          placeholder="Search tests by name..."
+          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
       <div className="space-y-8">
-        {tests.map((test) => (
+        {filteredTests.map((test) => (
           <div key={test.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-            <div className="flex justify-between items-start">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
               <div>
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">{test.title}</h2>
                 {test.time && (
