@@ -1,10 +1,20 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Add this import
 
-const Navbar = ({ onLoginClick, onSignUpClick, activeForm }) => {
+const Navbar = ({ onLoginClick, onSignUpClick, activeForm,  onBrandClick  }) => {
+  const navigate = useNavigate(); // Add this line
+    const handleBrandClick = () => {
+    if (onBrandClick) onBrandClick(); // Close modals
+    navigate('/'); // Navigate to landing page
+  };
+
   return (
     <nav className="bg-blue-900 text-white px-6 py-4 shadow-lg">
       <div className="flex justify-between items-center max-w-7xl mx-auto">
-        <div className="text-xl font-semibold">
+        <div
+          className="text-xl font-semibold cursor-pointer"
+          onClick={handleBrandClick} // Add this event
+        >
           Exam2Employ
         </div>
         <div className="flex space-x-4">

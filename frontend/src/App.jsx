@@ -40,10 +40,15 @@ const App = () => {
     setShowLogin(false); // Explicitly hide login
   };
 
+  const handleBrandClick = () => {
+    setShowLogin(false);
+    setShowSignUp(false);
+  };
+
   return (
     <Router>
       <div className="app">
-                {isLoggedIn ? ( // No changes needed. AdminLayout already handles /manage-users route for admins.
+        {isLoggedIn ? ( // No changes needed. AdminLayout already handles /manage-users route for admins.
           <>
             <Routes>
               <Route
@@ -63,13 +68,10 @@ const App = () => {
             <Navbar
               onLoginClick={handleNavbarLoginClick}
               onSignUpClick={handleNavbarSignUpClick}
-              activeForm={
-                showLogin ? 'login' : 
-                showSignUp ? 'signup' : 
-                null
-              }
+              activeForm={showLogin ? "login" : showSignUp ? "signup" : null}
+              onBrandClick={handleBrandClick}
             />
-            
+
             {/* Login/Signup forms */}
             {showLogin && (
               <Login
