@@ -1,11 +1,11 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom'; // Add this import
+import React from "react";
+import { useNavigate } from "react-router-dom"; // Add this import
 
-const Navbar = ({ onLoginClick, onSignUpClick, activeForm,  onBrandClick  }) => {
+const Navbar = ({ onLoginClick, onSignUpClick, activeForm, onBrandClick }) => {
   const navigate = useNavigate(); // Add this line
-    const handleBrandClick = () => {
+  const handleBrandClick = () => {
     if (onBrandClick) onBrandClick(); // Close modals
-    navigate('/'); // Navigate to landing page
+    navigate("/"); // Navigate to landing page
   };
 
   return (
@@ -21,9 +21,9 @@ const Navbar = ({ onLoginClick, onSignUpClick, activeForm,  onBrandClick  }) => 
           <button
             onClick={onSignUpClick}
             className={`px-4 py-2 transition-colors duration-200 font-medium ${
-              activeForm === 'signup' 
-                ? 'text-blue-300 border-b-2 border-blue-300' 
-                : 'text-white hover:text-blue-200'
+              activeForm === "signup"
+                ? "text-blue-300 border-b-2 border-blue-300"
+                : "text-white hover:text-blue-200"
             }`}
           >
             Sign Up
@@ -31,9 +31,9 @@ const Navbar = ({ onLoginClick, onSignUpClick, activeForm,  onBrandClick  }) => 
           <button
             onClick={onLoginClick}
             className={`px-4 py-2 transition-colors duration-200 font-medium ${
-              activeForm === 'login' 
-                ? 'text-blue-300 border-b-2 border-blue-300' 
-                : 'text-white hover:text-blue-200'
+              activeForm === "login"
+                ? "text-blue-300 border-b-2 border-blue-300"
+                : "text-white hover:text-blue-200"
             }`}
           >
             Login
